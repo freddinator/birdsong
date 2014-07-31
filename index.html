@@ -1,0 +1,215 @@
+<html>
+	<head>
+		<title>birdsong - the sound of twitter</title>
+		<meta charset="utf8" />
+		<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+		<script src='https://api.tiles.mapbox.com/mapbox.js/v1.6.4/mapbox.js'></script>
+		<link href='https://api.tiles.mapbox.com/mapbox.js/v1.6.4/mapbox.css' rel='stylesheet' />
+		<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <!-- Latest compiled and minified CSS -->
+		<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootswatch/3.2.0/readable/bootstrap.min.css">
+		<link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css">	
+		<!-- Latest compiled and minified JavaScript -->
+		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/bootbox.js/4.2.0/bootbox.min.js"></script>
+		<script type="text/javascript" src="song.js"></script>
+		<script type="text/javascript">
+			var markers = [];
+			var markerCols = [];
+			var map;
+			var colours = ['#2cff2e','#ff0002','#846eff'];
+			var count = 0;
+			var markerIcons = [];
+			var data;
+
+			markerIcons[0] = L.mapbox.marker.icon({
+				'marker-color': colours[0],
+				'marker-symbol': 'star',
+				'marker-size': 'medium'
+			});
+			markerIcons[1] = L.mapbox.marker.icon({
+				'marker-color': colours[0],
+				'marker-symbol': 'star',
+				'marker-size': 'large'
+			});
+			markerIcons[2] = L.mapbox.marker.icon({
+				'marker-color': colours[1],
+				'marker-symbol': 'star',
+				'marker-size': 'medium'
+			});
+			markerIcons[3] = L.mapbox.marker.icon({
+				'marker-color': colours[1],
+				'marker-symbol': 'star',
+				'marker-size': 'large'
+			});
+			markerIcons[4] = L.mapbox.marker.icon({
+				'marker-color': colours[2],
+				'marker-symbol': 'star',
+				'marker-size': 'medium'
+			});
+			markerIcons[5] = L.mapbox.marker.icon({
+				'marker-color': colours[2],
+				'marker-symbol': 'star',
+				'marker-size': 'large'
+			});
+
+			function doThisThing(tweetArray) {
+				// text,rt,fav,id,lat,lng,mood
+				// OK, THIS CALLS FOR THE HARD WAY. ENJOY, JAVASCRIPTERS.
+				var t = tweetArray;
+				var newMarkers = setInterval(function () {
+					if(markers[count]) map.removeLayer(markers[count]);
+					var colour = 2;
+					switch(t[count]["mood"]["label"]) {
+						case "pos":
+							colour = 0;
+							break;
+						case "neg":
+							colour = 1;
+							break;
+						case "neutral":
+							colour = 2;
+							break;
+					}
+					markerCols[count] = colour;
+					markers[count] = L.marker([t[count]["location"][0],t[count]["location"][1]],{
+						icon: L.mapbox.marker.icon({
+							'marker-color': colours[colour],
+							'marker-symbol': 'star',
+							'marker-size': 'medium'
+						})
+					});
+					var pop = "<p><strong><a href='http://twitter.com/"+t[count]["screen_name"]+"/status/"+t[count]["id"]+"' target='_blank'>@"+t[count]["screen_name"]+"</a></strong><br />"+t[count]["tweet"]+"</p>";
+					var sidebar = "<p><strong><a style='color:" + colours[colour] +";' href='http://twitter.com/"+t[count]["screen_name"]+"/status/"+t[count]["id"]+"' target='_blank'>@"+t[count]["screen_name"]+"</a></strong> said: "+t[count]["tweet"]+"</p><hr>";
+					markers[count]
+						.addTo(map)
+						.bindPopup(pop,{"closeButton": false, "autoPan": false});
+					popupOn(count);
+					parseInput(t[count]["tweet"], t[count]["mood"]);
+					var div = document.getElementById('tweet-sidebar');
+					div.innerHTML = sidebar + div.innerHTML;
+					count++;
+					if(count>t.length-1) {
+						count = 0;
+						clearInterval(newMarkers);
+						return true;
+					}
+				},1500);
+			}
+
+			function popupOn(i) {
+				//console.log(i+" on");
+				markers[i].openPopup();
+				markers[i].setIcon(markerIcons[(markerCols[i]*2)+1])
+				setTimeout(function () {
+					popupOff(i);
+				},1500);
+			}
+
+			function popupOff(i) {
+				//console.log(i+" off");
+				markers[i].setIcon(markerIcons[markerCols[i]*2]);
+			}
+
+			onLoad = function() {
+				setupAudio();
+				map = L.mapbox.map('map','finnbar.j352l4ng').setView([54.325174,-1.274414],6);
+				var xhr = new XMLHttpRequest();
+				map.on('ready',function() {
+
+					xhr.open('get','http://birdsong.me/backend.php');
+					xhr.onreadystatechange = function() {
+						if(xhr.readyState === 4) {
+							if(xhr.status === 200) {
+								data = null;
+								data = $.parseJSON(xhr.responseText);
+								doThisThing(data);
+							}
+						}
+					}
+					xhr.send(null);
+					var mainLoop = setInterval(function() {
+						xhr.open('get','http://178.62.34.230/backend.php');
+						xhr.onreadystatechange = function() {
+							if(xhr.readyState === 4) {
+								if(xhr.status === 200) {
+									data = null;
+									data = $.parseJSON(xhr.responseText);
+									doThisThing(data);
+								}
+							}
+						}
+						xhr.send(null);
+					},15000);
+					bootbox.dialog({
+					  message: "<div class='row text-center'><img src='ajax-loader.gif'><br>Connecting to tweet server. Please wait!</div>",
+					  title: "Loading...",
+					  closeButton: false
+					});
+					setTimeout(function(){
+   						document.getElementById("loading").style.display="none";
+   						bootbox.hideAll()
+					}, 8000); 
+				});
+			}
+		</script>
+		<style>
+			#map { 
+				height: 95%;
+			}
+			.custom-container {
+			  padding-left: 15px;
+			  padding-right: 15px;
+			  margin-left: auto;
+			  margin-right: auto;
+			  height: 95%;
+			}
+			html{
+			    min-height:100%;/* make sure it is at least as tall as the viewport */
+			    position:relative
+			}
+			body{
+			    height:100% /* force the BODY element to match the height of the HTML element */
+			}
+			#tweet-sidebar{
+			 overflow-x: hidden;
+			}
+		</style>
+	</head>
+	<body onLoad="onLoad();">
+		<div class="custom-container">
+			<div class="row">
+				<div class="col-md-11">
+					<h4>birdsong <small class="loading" id="loading">is loading...</small></h4>
+				</div>
+				<div class="col-md-1">
+					<h6><button type="button" class="btn btn-default btn-xs about">About</button></h6>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-10">
+					<div id="map" class="dark"></div>
+				</div>
+				<div class="col-md-2">
+					<h4>Tweets</h4>
+					<div id="tweet-sidebar" style="overflow:auto; height:90%;"></div>
+				</div>
+			</div>
+		</div>
+		<script>
+		$(document).on("click", ".about", function(e) {
+			bootbox.dialog({
+			  message: "birdsong is a twitter feed processor that gets uk tweets, geolocates them, runs semantic analysis and display it on a map. It then produces a synthesised sound based on the tweet. The tweets are censored, but only very simply",
+			  title: "About birdsong",
+			  buttons: {
+			    main: {
+			      label: "ok",
+			      className: "btn-primary",
+			    }
+			  }
+			});
+		});
+		</script>
+	</body>
+</html>
