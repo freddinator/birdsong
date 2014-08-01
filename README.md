@@ -1,4 +1,4 @@
 birdsong
 ========
 
-The nice/useful code from #FestivalofCode 2014 Project
+Most of this code is pretty standard, but check out harvester.py and song.js!
