@@ -16,7 +16,7 @@
  * So, if lettersPerBloop is 2, the script will only play a bloop for every second letter, aka, it will skip every other letter
  * availableTime is another available variable that you can mess with.
  * This sets the amount of time you would like the script to take on this message - a smaller time means faster notes!
- * If you want to bypass this restriction (make each note take x seconds), simply see the comment on line 159.
+ * If you want to bypass this restriction (make each note take x seconds), simply see the comment on line 168.
 */
 
 var context; //Our AudioContext, the thing which actually produces sound
@@ -56,6 +56,11 @@ var notes = [261.63,277.18,293.66,311.13,329.63,349.23,369.99,392,415.3,440,466.
 var majorPattern = [0,2,4,7,9,12,14,16,19,21];
 var minorPattern = [0,3,5,7,10,12,15,17,19,22]; //degrees for each scale...
 
+var pos = 0; //what note
+var scale = 0; //of what scale
+var key = 0; //in what key?
+var prevScale = 0;
+
 function getNotesInKey(key, scale) { // key: 0 == C, 1 == C# and so on, scale: 0 == maj, 1 == min
 	var result = [];
 	for(var i=0;i<10;i++) {
@@ -67,10 +72,6 @@ function getNotesInKey(key, scale) { // key: 0 == C, 1 == C# and so on, scale: 0
 	}
 	return result;
 }
-
-var pos = 0; //what note
-var scale = 0; //of what scale
-var key = 0; //in what key?
 
 function nextNote(input,multiplierPicker) { //multiplier picker is the prev. char, or "a" if there isn't one
 	var code = input.charCodeAt(0); //get the char code to work out what interval we will be using
@@ -139,7 +140,8 @@ function parseWord(word,delay) {
 			note=nextNote(word.charAt(placeInWord),"a");
 		}
 		placeInWord+=lettersPerBloop; //continue through the word
-		osc.frequency.value = notes[note]; //play the note!
+		var a = scale==1 ? notes[note]/2 : notes[note];
+		osc.frequency.value = a; //play the note!
 		if(placeInWord>=word.length) clearInterval(splittingWord); //clear when done
 		setTimeout(function() { //two-thirds of the way through the note, drop its volume by 50%
 			oscGain.gain.value = 0.5;
@@ -152,6 +154,13 @@ function parseInput(input,mood) { //right, here we go!
 		scale = 1; //minor
 	} else {
 		scale = 0; //major
+	}
+	if(scale==0 && prevScale==1) { //go to RELATIVE major
+		key+=3;
+		if(key>11) key-=12;
+	} else if(scale==1 && prevScale==0) { //go to RELATIVE minor
+		key-=3;
+		if(key<0) key+=12;
 	}
 	var pos = 0;
 	var words = input.match(regexp);
@@ -169,4 +178,5 @@ function parseInput(input,mood) { //right, here we go!
 			clearInterval(parsing); //clear when done
 		}
 	},delay);
+	prevScale = scale;
 }
