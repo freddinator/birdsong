@@ -86,7 +86,7 @@
 						.addTo(map)
 						.bindPopup(pop,{"closeButton": false, "autoPan": false});
 					popupOn(count);
-					parseInput(t[count]["tweet"], t[count]["mood"]);
+					parseInput(t[count]["tweet"], t[count]["mood"]["label"]);
 					var div = document.getElementById('tweet-sidebar');
 					div.innerHTML = sidebar + div.innerHTML;
 					count++;
