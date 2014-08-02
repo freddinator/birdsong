@@ -112,6 +112,8 @@
 				markers[i].setIcon(markerIcons[markerCols[i]*2]);
 			}
 
+			var opac = 0;
+
 			onLoad = function() {
 				setupAudio();
 				map = L.mapbox.map('map','finnbar.j352l4ng').setView([54.325174,-1.274414],6);
@@ -143,7 +145,7 @@
 						xhr.send(null);
 					},15000);
 					bootbox.dialog({
-					  message: "<div class='row text-center'><img src='ajax-loader.gif'><br>Connecting to tweet server. Please wait!</div>",
+					  message: "<div class='row text-center'><span><img id='logo' src='birdsongLogo.png' height='50%' style='opacity:0;'></span><br/><img src='ajax-loader.gif'><br>Connecting to tweet server. Please wait!</div>",
 					  title: "Loading...",
 					  closeButton: false
 					});
@@ -151,6 +153,11 @@
    						document.getElementById("loading").style.display="none";
    						bootbox.hideAll()
 					}, 8000); 
+					var increaseOpacity = setInterval(function() {
+						opac+=1/800;
+						document.querySelector("#logo").style.opacity = opac;
+						if(opac>=1) clearInterval(increaseOpacity);
+					},1);
 				});
 			}
 		</script>
@@ -200,7 +207,7 @@
 		<script>
 		$(document).on("click", ".about", function(e) {
 			bootbox.dialog({
-			  message: "birdsong is a twitter feed processor that gets uk tweets, geolocates them, runs semantic analysis and display it on a map. It then produces a synthesised sound based on the tweet. The tweets are censored, but only very simply",
+			  message: "birdsong is a twitter feed processor that gets uk tweets, geolocates them, runs semantic analysis and display it on a map. It then produces a synthesised sound based on the tweet's mood and content. The tweets are censored, but only very simply so you may encounter the Scunthorpe problem.",
 			  title: "About birdsong",
 			  buttons: {
 			    main: {
