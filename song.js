@@ -16,16 +16,22 @@
  * So, if lettersPerBloop is 2, the script will only play a bloop for every second letter, aka, it will skip every other letter
  * availableTime is another available variable that you can mess with.
  * This sets the amount of time you would like the script to take on this message - a smaller time means faster notes!
- * If you want to bypass this restriction (make each note take x seconds), simply see the comment on line 168.
+ * If you want to bypass this restriction (make each note take x seconds), simply see the comment on line 159.
 */
 
 var context; //Our AudioContext, the thing which actually produces sound
 var osc;     //Our Oscillator, the thing which creates cool soundwaves
 var oscGain; //Our GainModule, the thing that should fix trailing notes by silencing them
+var chrome;
 
 function setupAudio () { //BEGIN THE AUDIO THINGS
 	//(aka if userAgent string contains Internet Explorer, you know what to do...)
 	if(/MSIE/g.test( navigator.userAgent )) alert("Get a better browser, please, for your own sake :(");
+	if(/Chrome/g.test(navigator.userAgent)) {
+		chrome = true;
+	} else {
+		chrome = false;
+	}
 	console.log("INITIALISING");
 	try {
 		// Fix up for prefixing
@@ -132,7 +138,7 @@ function parseWord(word,delay) {
 	// +1 because setInterval waits (oh crap)
 	var placeInWord = 0;
 	var splittingWord = setInterval(function () {
-		//oscGain.gain.value = 1;
+		if(chrome) oscGain.gain.value = 1;
 		var note;
 		if(placeInWord>0) { //if there's a previous char, use that
 			note=nextNote(word.charAt(placeInWord),word.charAt(placeInWord-1));
@@ -143,10 +149,12 @@ function parseWord(word,delay) {
 		var a = scale==1 ? notes[note]/2 : notes[note];
 		osc.frequency.value = a; //play the note!
 		if(placeInWord>=word.length) clearInterval(splittingWord); //clear when done
-		setTimeout(function() { //two-thirds of the way through the note, drop its volume by 50%
-			oscGain.gain.value = 0.5;
-		},minisculeDelay-=(minisculeDelay/3));
+		setTimeout(endNote,minisculeDelay-=(minisculeDelay/64));
 	},minisculeDelay); //repeat for the rest of the word!
+}
+
+function endNote() {
+	oscGain.gain.value = chrome ? 0 : 0.5;
 }
 
 function parseInput(input,mood) { //right, here we go!
