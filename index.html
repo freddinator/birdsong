@@ -145,7 +145,7 @@
 						xhr.send(null);
 					},15000);
 					bootbox.dialog({
-					  message: "<div class='row text-center'><span><img id='logo' src='birdsongLogo.png' height='50%' style='opacity:0;'></span><br/><img src='ajax-loader.gif'><br>Connecting to tweet server. Please wait!</div>",
+					  message: "<div class='row text-center'><span><img id='logo' src='birdsongLogo.png' height='50%' style='opacity:0;'></span><br/><img src='ajax-loader.gif'><br>Connecting to tweet server. Please wait!<br>PLEASE NOTE: we have currently disabled the Language Analysis API due to a lack of available free requests (aka we are cheap). Please bear with us as we move to a more permanent solution. For now, the chosen moods of each tweet are randomised.</div>",
 					  title: "Loading...",
 					  closeButton: false
 					});
@@ -207,8 +207,8 @@
 		<script>
 		$(document).on("click", ".about", function(e) {
 			bootbox.dialog({
-			  message: "birdsong is a twitter feed processor that gets uk tweets, geolocates them, runs semantic analysis and display it on a map. It then produces a synthesised sound based on the tweet's mood and content. The tweets are censored, but only very simply so you may encounter the Scunthorpe problem.",
-			  title: "About birdsong",
+			  message: "birdsong is a twitter feed processor that gets uk tweets, geolocates them, runs semantic analysis and display it on a map. It then produces a synthesised sound based on the tweet's mood and content. The tweets are censored, but only very simply so you may encounter the Scunthorpe problem. If you would like to contact us you may do so on Twitter @_finnbar or at @freddinator, or by email to finnjkeating {{at}} gmail {{dot}} com or [Freddy's email which I don't have yet].",
+			  title: "About birdsong (an app by Finnbar Keating and Freddy Heppel)",
 			  buttons: {
 			    main: {
 			      label: "ok",
